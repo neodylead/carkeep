@@ -1,0 +1,71 @@
+{% extends "base.html" %}
+
+{% block title %}Log in - CarKeep{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <section class="auth-card">
+        <div class="auth-brand">
+            <div class="auth-brand-icon">C</div>
+            <h1>Car<span class="brand-accent">Keep</span></h1>
+        </div>
+
+        <div class="auth-heading">
+            <p class="eyebrow">Welcome back</p>
+            <h2>Sign in to your garage</h2>
+            <p class="auth-description">
+                Your vehicles, maintenance history, and important details
+                all in one place.
+            </p>
+        </div>
+
+        <form method="POST"
+              action="{{ url_for('login') }}"
+              class="auth-form">
+
+            <div class="form-field">
+                <label for="username">Username</label>
+                <input
+                    type="text"
+                    id="username"
+                    name="username"
+                    placeholder="Enter your username"
+                    autocomplete="username"
+                    required
+                    autofocus
+                >
+            </div>
+
+            <div class="form-field">
+                <label for="password">Password</label>
+                <input
+                    type="password"
+                    id="password"
+                    name="password"
+                    placeholder="Enter your password"
+                    autocomplete="current-password"
+                    required
+                >
+            </div>
+
+            <button type="submit" class="button button-primary auth-submit">
+                Log in
+                <span aria-hidden="true">→</span>
+            </button>
+        </form>
+
+        <div class="auth-divider">
+            <span>New to CarKeep?</span>
+        </div>
+
+        <a href="{{ url_for('register') }}"
+           class="button button-ghost auth-register">
+            Create an account
+        </a>
+
+        <p class="auth-footer">
+            Keep your car's story in one place.
+        </p>
+    </section>
+</div>
+{% endblock %}

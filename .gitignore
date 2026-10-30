@@ -1,0 +1,21 @@
+# Python
+venv/
+__pycache__/
+*.py[cod]
+
+# Environment and secrets
+.env
+.env.*
+!.env.example
+instance/
+
+# Databases and backups
+*.db
+*.sqlite
+*.sqlite3
+*.bak
+
+# Local development
+.vscode/
+.idea/
+.pytest_cache/

@@ -1,0 +1,351 @@
+{% extends "base.html" %}
+
+{% block title %}My Garage - CarKeep{% endblock %}
+
+{% block content %}
+
+<!-- Dashboard header -->
+<div class="page-header">
+    <p class="eyebrow">Your personal garage</p>
+
+    <div class="page-title-row">
+        <div>
+            <h1>Welcome back, {{ user.username }}!</h1>
+            <p class="page-description">
+                All your vehicles, their details, and maintenance records in one place.
+            </p>
+        </div>
+
+        <a class="button button-primary" href="#add-car">
+            + Add vehicle
+        </a>
+    </div>
+</div>
+
+<!-- Garage summary -->
+<section class="garage-summary">
+    <div class="summary-card">
+        <div class="summary-icon">🚗</div>
+        <div>
+            <p class="summary-label">Vehicles</p>
+            <p class="summary-value">{{ user_cars|length }}</p>
+        </div>
+    </div>
+
+    <div class="summary-card">
+        <div class="summary-icon">🔑</div>
+        <div>
+            <p class="summary-label">Owned by you</p>
+            <p class="summary-value">
+                {{ user_cars|selectattr("role", "equalto", "owner")|list|length }}
+            </p>
+        </div>
+    </div>
+
+    <div class="summary-card">
+        <div class="summary-icon">🤝</div>
+        <div>
+            <p class="summary-label">Shared with you</p>
+            <p class="summary-value">
+                {{ user_cars|selectattr("role", "equalto", "editor")|list|length }}
+            </p>
+        </div>
+    </div>
+</section>
+
+<!-- Vehicle collection -->
+<section class="section">
+    <div class="section-heading">
+        <div>
+            <p class="eyebrow">Your collection</p>
+            <h2>My Garage</h2>
+        </div>
+
+        <span class="count-badge">
+            {{ user_cars|length }}
+            {{ "vehicle" if user_cars|length == 1 else "vehicles" }}
+        </span>
+    </div>
+
+    {% if user_cars %}
+        <div class="garage-grid">
+            {% for access in user_cars %}
+                <article class="vehicle-card">
+
+                <!-- Vehicle image -->
+                <a
+                    class="vehicle-card-image"
+                    href="{{ url_for('car_detail', car_id=access.car.car_id) }}"
+                    aria-label="View {{ access.car.make }} {{ access.car.model }}"
+                >
+                    {% if access.car.image_filename %}
+                        <img
+                            src="{{ url_for('static', filename='uploads/cars/' ~ access.car.image_filename) }}"
+                            alt="{{ access.car.make }} {{ access.car.model }}"
+                            loading="lazy"
+                        >
+                    {% else %}
+                        <div class="vehicle-image-placeholder">
+                            <span class="placeholder-icon">🚘</span>
+                            <span class="placeholder-text">No vehicle photo yet</span>
+                        </div>
+                    {% endif %}
+
+                    <span class="image-view-label">View vehicle ↗</span>
+                </a>
+
+                <!-- Vehicle information -->
+                <div class="vehicle-card-body">
+
+                    <div class="vehicle-card-top">
+                        <span class="vehicle-category">PERSONAL VEHICLE</span>
+
+                        {% if access.role == "owner" %}
+                            <span class="role-badge role-owner">Owner</span>
+                        {% else %}
+                            <span class="role-badge role-editor">Editor</span>
+                        {% endif %}
+                    </div>
+
+                    <div class="vehicle-card-main">
+                        <h3>
+                            {{ access.car.make }} {{ access.car.model }}
+                        </h3>
+
+                        <div class="license-plate">
+                            <div class="license-plate-country">
+                                <span class="eu-stars">✦</span>
+                                <span>H</span>
+                            </div>
+
+                            <div class="license-plate-number">
+                                {{ access.car.license_plate }}
+                            </div>
+                        </div>
+                    </div>
+
+                    <div class="vehicle-card-details">
+                        <div class="vehicle-detail">
+                            <span class="spec-label">Current mileage</span>
+                            <span class="spec-value">
+                                {{ "{:,}".format(access.car.current_mileage or 0) }} km
+                            </span>
+                        </div>
+
+                        <div class="vehicle-detail">
+                            <span class="spec-label">Production year</span>
+                            <span class="spec-value">
+                                {{ access.car.production_year or "Not specified" }}
+                            </span>
+                        </div>
+
+                        <div class="vehicle-detail">
+                            <span class="spec-label">Fuel type</span>
+                            <span class="spec-value">
+                                {{ access.car.fuel_type or "Not specified" }}
+                            </span>
+                        </div>
+                    </div>
+
+                    <div class="vehicle-card-actions">
+                        <a
+                            class="button button-primary"
+                            href="{{ url_for('car_detail', car_id=access.car.car_id) }}"
+                        >
+                            Vehicle details →
+                        </a>
+
+                        {% if access.role == "owner" %}
+                            <form
+                                action="{{ url_for('delete_car', car_id=access.car.car_id) }}"
+                                method="POST"
+                                onsubmit="return confirm('Delete this car and all its maintenance history? This cannot be undone.');"
+                            >
+                                <button
+                                    class="button button-danger button-icon"
+                                    type="submit"
+                                    aria-label="Delete {{ access.car.make }} {{ access.car.model }}"
+                                    title="Delete vehicle"
+                                >
+                                    🗑
+                                </button>
+                            </form>
+                        {% endif %}
+                    </div>
+
+                </div>
+            </article>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="empty-state">
+            <div class="empty-state-icon">🚘</div>
+            <h3>Your garage is waiting</h3>
+            <p>
+                You haven't added a vehicle yet. Add your first car to start
+                tracking its maintenance and service history.
+            </p>
+
+            <a class="button button-primary" href="#add-car">
+                Add your first vehicle
+            </a>
+        </div>
+    {% endif %}
+</section>
+
+<!-- Add vehicle form -->
+<section class="panel section" id="add-car">
+    <div class="section-heading">
+        <div>
+            <p class="eyebrow">Expand your collection</p>
+            <h2>Add a vehicle</h2>
+            <p class="section-description">
+                Enter your vehicle's details to add it to your garage.
+            </p>
+        </div>
+    </div>
+
+    <form action="{{ url_for('add_car') }}" method="POST" class="form-grid">
+
+        <div class="form-field">
+            <label for="make">Make *</label>
+            <input
+                type="text"
+                id="make"
+                name="make"
+                maxlength="50"
+                placeholder="e.g. Peugeot"
+                required
+            >
+        </div>
+
+        <div class="form-field">
+            <label for="model">Model *</label>
+            <input
+                type="text"
+                id="model"
+                name="model"
+                maxlength="50"
+                placeholder="e.g. 206 CC"
+                required
+            >
+        </div>
+
+        <div class="form-field">
+            <label for="vin">VIN *</label>
+            <input
+                type="text"
+                id="vin"
+                name="vin"
+                minlength="17"
+                maxlength="17"
+                placeholder="17-character VIN"
+                required
+            >
+            <small>Usually found on the vehicle registration documents or bodywork.</small>
+        </div>
+
+        <div class="form-field">
+            <label for="license_plate">Registration plate *</label>
+            <input
+                type="text"
+                id="license_plate"
+                name="license_plate"
+                maxlength="7"
+                placeholder="e.g. NGV392"
+                required
+            >
+        </div>
+
+        <div class="form-field">
+            <label for="current_mileage">Current mileage (km)</label>
+            <input
+                type="number"
+                id="current_mileage"
+                name="current_mileage"
+                min="0"
+                step="1"
+                value="0"
+                required
+            >
+        </div>
+
+        <div class="form-field">
+            <label for="production_year">Production year</label>
+            <input
+                type="number"
+                id="production_year"
+                name="production_year"
+                min="1886"
+                max="{{ current_year }}"
+                placeholder="e.g. 2002"
+            >
+        </div>
+
+        <div class="form-field">
+            <label for="first_registration">First registration</label>
+            <input
+                type="date"
+                id="first_registration"
+                name="first_registration"
+            >
+        </div>
+
+        <div class="form-field">
+            <label for="fuel_type">Fuel type</label>
+            <select id="fuel_type" name="fuel_type">
+                <option value="">Select fuel type</option>
+                <option value="Petrol">Petrol</option>
+                <option value="Diesel">Diesel</option>
+                <option value="LPG">LPG</option>
+                <option value="CNG">CNG</option>
+                <option value="Hybrid">Hybrid</option>
+                <option value="Electric">Electric</option>
+                <option value="Other">Other</option>
+            </select>
+        </div>
+
+        <div class="form-field">
+            <label for="engine">Engine</label>
+            <input
+                type="text"
+                id="engine"
+                name="engine"
+                maxlength="10"
+                placeholder="e.g. 2.0 16V"
+            >
+        </div>
+
+        <div class="form-field">
+            <label for="power">Power (hp)</label>
+            <input
+                type="number"
+                id="power"
+                name="power"
+                min="1"
+                step="1"
+                placeholder="e.g. 136"
+            >
+        </div>
+
+        <div class="form-field">
+            <label for="color">Color</label>
+            <input
+                type="text"
+                id="color"
+                name="color"
+                maxlength="20"
+                placeholder="e.g. Blue metallic"
+            >
+        </div>
+
+        <div class="form-field form-field-full form-actions">
+            <button class="button button-primary" type="submit">
+                + Add vehicle to garage
+            </button>
+        </div>
+
+    </form>
+</section>
+
+{% endblock %}

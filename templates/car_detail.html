@@ -1,0 +1,345 @@
+{% extends "base.html" %}
+
+{% block title %}{{ car.make }} {{ car.model }} - CarKeep{% endblock %}
+
+{% block content %}
+
+<div class="page-header">
+    <a class="back-link" href="{{ url_for('garage') }}">
+        ← Back to garage
+    </a>
+
+    <p class="eyebrow">Vehicle overview</p>
+
+    <div class="page-title-row">
+        <div>
+            <h1>{{ car.make }} {{ car.model }}</h1>
+            <p class="page-description">
+                Your vehicle details and maintenance history, all in one place.
+            </p>
+        </div>
+
+        {% if access.role == "owner" %}
+            <a
+                class="button button-primary"
+                href="{{ url_for('edit_car', car_id=car.car_id) }}"
+            >
+                Edit vehicle
+            </a>
+        {% endif %}
+    </div>
+</div>
+
+<!-- Vehicle information -->
+<section class="panel">
+    <div class="section-heading">
+        <div>
+            <p class="eyebrow">Overview</p>
+            <h2>Vehicle information</h2>
+        </div>
+
+        <span class="role-badge">
+            {{ access.role|capitalize }}
+        </span>
+    </div>
+
+    <div class="vehicle-overview">
+        <div class="license-plate">
+            <div class="license-plate-country">
+                <span class="eu-stars">✦</span>
+                <span>H</span>
+            </div>
+
+            <div class="license-plate-number">
+                {{ car.license_plate }}
+            </div>
+        </div>
+
+        <div>
+            <p class="spec-label">Current mileage</p>
+            <p class="mileage-value">
+                {{ "{:,}".format(car.current_mileage or 0) }}
+                <span>km</span>
+            </p>
+        </div>
+    </div>
+
+    <div class="vehicle-specs">
+        <div class="spec-item">
+            <span class="spec-label">Make</span>
+            <span class="spec-value">{{ car.make }}</span>
+        </div>
+
+        <div class="spec-item">
+            <span class="spec-label">Model</span>
+            <span class="spec-value">{{ car.model }}</span>
+        </div>
+
+        <div class="spec-item">
+            <span class="spec-label">Production year</span>
+            <span class="spec-value">
+                {{ car.production_year or "Not specified" }}
+            </span>
+        </div>
+
+        <div class="spec-item">
+            <span class="spec-label">Fuel type</span>
+            <span class="spec-value">
+                {{ car.fuel_type or "Not specified" }}
+            </span>
+        </div>
+
+        <div class="spec-item">
+            <span class="spec-label">Engine</span>
+            <span class="spec-value">
+                {{ car.engine or "Not specified" }}
+            </span>
+        </div>
+
+        <div class="spec-item">
+            <span class="spec-label">Power</span>
+            <span class="spec-value">
+                {{ car.power ~ " hp" if car.power is not none else "Not specified" }}
+            </span>
+        </div>
+
+        <div class="spec-item">
+            <span class="spec-label">Color</span>
+            <span class="spec-value">
+                {{ car.color or "Not specified" }}
+            </span>
+        </div>
+    </div>
+</section>
+
+<!-- Add maintenance event -->
+<section class="panel section">
+    <div class="section-heading">
+        <div>
+            <p class="eyebrow">Keep it running</p>
+            <h2>Record maintenance</h2>
+            <p class="section-description">
+                Log repairs, servicing, and other work performed on your vehicle.
+            </p>
+        </div>
+    </div>
+
+    <form
+        action="{{ url_for('add_maintenance_event', car_id=car.car_id) }}"
+        method="POST"
+        class="form-grid"
+    >
+        <div class="form-field">
+            <label for="title">Event title</label>
+            <input
+                type="text"
+                id="title"
+                name="title"
+                maxlength="100"
+                placeholder="e.g. Engine oil and filter change"
+                required
+            >
+        </div>
+
+        <div class="form-field">
+            <label for="event_date">Maintenance date</label>
+            <input
+                type="date"
+                id="event_date"
+                name="event_date"
+                required
+            >
+        </div>
+
+        <div class="form-field">
+            <label for="mileage">Mileage (km)</label>
+            <input
+                type="number"
+                id="mileage"
+                name="mileage"
+                min="0"
+                step="1"
+                placeholder="e.g. 307000"
+                required
+            >
+        </div>
+
+        <div class="form-field">
+            <label for="cost">Cost (optional)</label>
+            <input
+                type="number"
+                id="cost"
+                name="cost"
+                min="0"
+                max="99999999"
+                step="1"
+                placeholder="e.g. 18000"
+            >
+        </div>
+
+        <div class="form-field">
+            <label for="currency">Currency</label>
+            <select id="currency" name="currency">
+                <option value="HUF" selected>HUF — Hungarian forint</option>
+                <option value="EUR">EUR — Euro</option>
+                <option value="USD">USD — US dollar</option>
+            </select>
+        </div>
+
+        <div class="form-field form-field-full">
+            <label for="description">Description (optional)</label>
+            <textarea
+                id="description"
+                name="description"
+                rows="4"
+                placeholder="What work was performed? Which parts were replaced?"
+            ></textarea>
+        </div>
+
+        <div class="form-field-full">
+            <button class="button button-primary" type="submit">
+                + Save maintenance event
+            </button>
+        </div>
+    </form>
+</section>
+
+<!-- Maintenance history -->
+<section class="panel section">
+    <div class="section-heading">
+        <div>
+            <p class="eyebrow">Service records</p>
+            <h2>Maintenance history</h2>
+            <p class="section-description">
+                A record of the work performed on this vehicle.
+            </p>
+        </div>
+
+        <span class="count-badge">
+            {{ events|length }} {{ "record" if events|length == 1 else "records" }}
+        </span>
+    </div>
+
+    {% if events %}
+        <div class="maintenance-timeline">
+            {% for event in events %}
+                <article class="maintenance-event">
+                    <div class="maintenance-event-marker"></div>
+
+                    <div class="maintenance-event-content">
+                        <div class="maintenance-event-header">
+                            <div>
+                                <h3>{{ event.title }}</h3>
+                                <p class="event-date">
+                                    {{ event.event_date.strftime("%d %B %Y") }}
+                                </p>
+                            </div>
+
+                            <span class="event-mileage">
+                                {{ "{:,}".format(event.mileage) }} km
+                            </span>
+                        </div>
+
+                        {% if event.description %}
+                            <p class="event-description">
+                                {{ event.description }}
+                            </p>
+                        {% endif %}
+
+                        {% if event.cost is not none %}
+                            <p class="event-cost">
+                                <span class="spec-label">Cost</span>
+
+                                <strong>
+                                    {% if event.currency == "HUF" %}
+                                        {{ "{:,.0f}".format(event.cost) }} HUF
+                                    {% else %}
+                                        {{ "{:,.2f}".format(event.cost) }}
+                                        {{ event.currency }}
+                                    {% endif %}
+                                </strong>
+                            </p>
+                        {% endif %}
+
+                        {% if access.role == "owner" %}
+                            <form
+                                class="event-actions"
+                                action="{{ url_for(
+                                    'delete_maintenance_event',
+                                    car_id=car.car_id,
+                                    event_id=event.event_id
+                                ) }}"
+                                method="POST"
+                                onsubmit="return confirm('Are you sure you want to delete this maintenance event?');"
+                            >
+                                <button
+                                    class="button button-danger button-small"
+                                    type="submit"
+                                >
+                                    Delete record
+                                </button>
+                            </form>
+                        {% endif %}
+                    </div>
+                </article>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="empty-state">
+            <div class="empty-state-icon">🔧</div>
+            <h3>No maintenance records yet</h3>
+            <p>
+                Once you record your first service or repair, it will appear here.
+            </p>
+        </div>
+    {% endif %}
+</section>
+
+<!-- Future feature -->
+<section class="panel section">
+    <div class="section-heading">
+        <div>
+            <p class="eyebrow">Coming soon</p>
+            <h2>Installed parts</h2>
+        </div>
+    </div>
+
+    <div class="empty-state">
+        <div class="empty-state-icon">⚙️</div>
+        <h3>Parts tracking is on the way</h3>
+        <p>
+            This section will eventually let you track installed parts and
+            connect them with maintenance records.
+        </p>
+    </div>
+</section>
+
+{% endblock %}
+
+{% block scripts %}
+<script>
+    const currencySelect = document.getElementById("currency");
+    const costInput = document.getElementById("cost");
+
+    function updateCostInput() {
+        if (!currencySelect || !costInput) {
+            return;
+        }
+
+        if (currencySelect.value === "HUF") {
+            costInput.step = "1";
+            costInput.max = "99999999";
+            costInput.placeholder = "e.g. 18000";
+        } else {
+            costInput.step = "0.01";
+            costInput.max = "99999999.99";
+            costInput.placeholder = "e.g. 45.50";
+        }
+    }
+
+    if (currencySelect && costInput) {
+        currencySelect.addEventListener("change", updateCostInput);
+        updateCostInput();
+    }
+</script>
+{% endblock %}

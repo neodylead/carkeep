@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+    <title>{% block title %}CarKeep{% endblock %}</title>
+
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+
+    {% block head %}{% endblock %}
+</head>
+<body>
+    <header class="topbar">
+        <div class="topbar-inner">
+            <a class="brand" href="{{ url_for('garage') if current_user.is_authenticated else url_for('login') }}">
+                <span class="brand-icon">C</span>
+                <span>Car<span class="brand-accent">Keep</span></span>
+            </a>
+
+            {% if current_user.is_authenticated %}
+                <nav class="main-nav">
+                    <a href="{{ url_for('garage') }}">My Garage</a>
+                </nav>
+
+                <div class="nav-user">
+                    <span class="user-avatar">
+                        {{ current_user.username[0]|upper }}
+                    </span>
+
+                    <span class="nav-username">{{ current_user.username }}</span>
+
+                    <form action="{{ url_for('logout') }}" method="POST">
+                        <button class="button button-ghost button-small" type="submit">
+                            Sign out
+                        </button>
+                    </form>
+                </div>
+            {% endif %}
+        </div>
+    </header>
+
+    <main class="page-container">
+        {% with messages = get_flashed_messages(with_categories=true) %}
+            {% if messages %}
+                <div class="flash-list">
+                    {% for category, message in messages %}
+                        <div class="flash-message">
+                            <span class="flash-indicator"></span>
+                            <span>{{ message }}</span>
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endif %}
+        {% endwith %}
+
+        {% block content %}{% endblock %}
+    </main>
+
+    <footer class="site-footer">
+        <span>CarKeep</span>
+        <span>Keep your car's story in one place.</span>
+    </footer>
+
+    {% block scripts %}{% endblock %}
+</body>
+</html>

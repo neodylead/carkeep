@@ -1,0 +1,97 @@
+{% extends "base.html" %}
+
+{% block title %}Create Account - CarKeep{% endblock %}
+
+{% block content %}
+<div class="auth-container">
+    <section class="auth-card">
+        <div class="auth-brand">
+            <div class="auth-brand-icon">C</div>
+            <h1>Car<span class="brand-accent">Keep</span></h1>
+        </div>
+
+        <div class="auth-heading">
+            <p class="eyebrow">Start your journey</p>
+            <h2>Create your account</h2>
+            <p class="auth-description">
+                Build your digital garage and keep your vehicle
+                information and maintenance history organized.
+            </p>
+        </div>
+
+        <form
+            method="POST"
+            action="{{ url_for('register') }}"
+            class="auth-form"
+        >
+            <div class="form-field">
+                <label for="username">Username</label>
+                <input
+                    type="text"
+                    id="username"
+                    name="username"
+                    placeholder="Choose a username"
+                    autocomplete="username"
+                    minlength="3"
+                    required
+                    autofocus
+                >
+                <small class="field-hint">
+                    This is how you'll be identified in CarKeep.
+                </small>
+            </div>
+
+            <div class="form-field">
+                <label for="email">Email address</label>
+                <input
+                    type="email"
+                    id="email"
+                    name="email"
+                    placeholder="you@example.com"
+                    autocomplete="email"
+                    required
+                >
+            </div>
+
+            <div class="form-field">
+                <label for="password">Password</label>
+                <input
+                    type="password"
+                    id="password"
+                    name="password"
+                    placeholder="Create a password"
+                    autocomplete="new-password"
+                    minlength="8"
+                    required
+                >
+                <small class="field-hint">
+                    Use at least 8 characters.
+                </small>
+            </div>
+
+            <button
+                type="submit"
+                class="button button-primary auth-submit"
+            >
+                Create account
+                <span aria-hidden="true">→</span>
+            </button>
+        </form>
+
+        <div class="auth-divider">
+            <span>Already have an account?</span>
+        </div>
+
+        <a
+            href="{{ url_for('login') }}"
+            class="button button-ghost auth-register"
+        >
+            Log in instead
+        </a>
+
+        <p class="auth-footer">
+            Your garage. Your records. All in one place.
+        </p>
+    </section>
+</div>
+{% endblock %}
